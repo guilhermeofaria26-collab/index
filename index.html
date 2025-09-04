@@ -1,4 +1,152 @@
-<!DOCTYPE html>
+<!DOCTYPE import pandas as pd
+import folium
+from folium.plugins import Search
+from io import StringIO
+
+# =====================
+# CSV de exemplo
+# =====================
+data_csv = """Nome,Latitude,Longitude,Valor
+ABADIA DOS DOURADOS,-18.48756496,-47.39683244,"R$ 1.216,51"
+ALMAS,-11.57,-47.17,"R$ 663,32"
+ANHANGUERA,-18.33,-48.22,"R$ 1.251,67"
+ARAGUARI,-18.65,-48.19,"R$ 114.492,74"
+ARAXÁ,-19.59,-46.94,"R$ 21.790,43"
+ARINOS,-15.92,-46.11,"R$ 1.446,77"
+BRASÍLIA,-15.79,-47.89,"R$ 146,57"
+BRITÂNIA,-15.24,-51.17,"R$ 793,23"
+BURITI ALEGRE,-18.13,-49.04,"R$ 1.389,36"
+BURITIS,-15.63,-46.42,"R$ 8.250,85"
+BURITIZEIRO,-17.36,-44.96,"R$ 3.216,60"
+CACHOEIRA DOURADA,-18.49,-49.47,"R$ 4.354,68"
+CAMPANHA,-21.84,-45.40,"R$ 20,85"
+CAMPINA VERDE,-19.54,-49.48,"R$ 1.440,82"
+CAMPO FLORIDO,-19.77,-48.57,"R$ 11.782,50"
+CANÁPOLIS,-13.08,-44.21,"R$ 222,26"
+CAPINÓPOLIS,-18.68,-49.57,"R$ 2.412,44"
+CARMO DO PARANAÍBA,-19.00,-46.31,"R$ 9.183,76"
+CASCALHO RICO,-18.58,-47.88,"R$ 2.714,43"
+CATALÃO,-18.17,-47.95,"R$ 1.099,97"
+CENTRALINA,-18.59,-49.20,"R$ 1.520,24"
+COMENDADOR GOMES,-19.70,-49.08,"R$ 38,30"
+COROMANDEL,-18.47,-47.20,"R$ 3.357,83"
+CORUMBAÍBA,-18.14,-48.56,"R$ 2.764,28"
+CRUZEIRO DA FORTALEZA,-18.94,-46.67,"R$ 1.905,75"
+UBERLÂNDIA,-18.92,-48.28,"R$ 151,63"
+CUMARI,-18.26,-48.16,"R$ 749,81"
+DOURADOQUARA,-18.43,-47.61,"R$ 9.661,21"
+ESTRELA DO SUL,-18.74,-47.69,"R$ 6.494,67"
+FERROS,-19.24,-43.02,"R$ 4.577,88"
+FIGUEIRÓPOLIS,-12.14,-49.17,"R$ 2.256,09"
+FRUTAL,-20.03,-48.94,"R$ 35.581,53"
+GOIANDIRA,-18.13,-48.09,"R$ 457,58"
+GRUPIARA,-18.49,-47.72,"R$ 884,33"
+GUARDA-MOR,-17.77,-47.10,"R$ 1.863,88"
+GUIMARÂNIA,-18.84,-46.80,"R$ 3.843,80"
+GURINHATÃ,-19.21,-49.79,"R$ 13.075,33"
+INDIANÓPOLIS,-19.04,-47.92,"R$ 64.589,69"
+IPIAÇU,-18.69,-49.95,"R$ 7.603,20"
+IRAÍ DE MINAS,-18.98,-47.46,"R$ 1.456,90"
+ITAPAGIPE,-19.90,-49.37,"R$ 16.774,09"
+ITUIUTABA,-18.97,-49.46,"R$ 48.415,90"
+ITURAMA,-19.73,-50.20,"R$ 27.097,00"
+JANAÚBA,-15.80,-43.31,"R$ 2.530,00"
+JANUÁRIA,-15.49,-44.36,"R$ 99,78"
+JOÃO PINHEIRO,-17.74,-46.18,"R$ 11.002,07"
+LAGOA DOS PATOS,-16.98,-44.58,"R$ 169,72"
+LAGOA FORMOSA,-18.78,-46.41,"R$ 27.591,71"
+LIMEIRA DO OESTE,-19.55,-50.58,"R$ 819,03"
+MARTINHO CAMPOS,-19.33,-45.24,"R$ 9.850,00"
+MATUTINA,-19.23,-45.98,"R$ 2.586,00"
+MONTE ALEGRE DE MINAS,-18.87,-48.88,"R$ 144.235,27"
+MONTE CARMELO,-18.73,-47.50,"R$ 7.597,05"
+MONTIVIDIU,-17.44,-51.18,"R$ 2.032,26"
+MORRINHOS,-17.73,-49.11,"R$ 221,19"
+MORRO DA GARÇA,-18.55,-44.60,"R$ 4.100,00"
+NOVA AURORA,-18.07,-48.26,"R$ 3.434,22"
+NOVA PONTE,-19.17,-47.67,"R$ 5.477,04"
+OURO VERDE DE GOIÁS,-16.21,-49.20,"R$ 137,33"
+OUVIDOR,-18.23,-47.83,"R$ 580,00"
+PARACATU,-17.22,-46.88,"R$ 3.046,64"
+PARANÃ,-12.62,-47.88,"R$ 2.495,00"
+PARANAIGUARA,-18.91,-50.65,"R$ 1.750,00"
+PASSOS,-20.72,-46.61,"R$ 1.567,20"
+PATOS DE MINAS,-18.59,-46.52,"R$ 85.172,64"
+PATROCÍNIO,-18.94,-47.00,"R$ 12.680,27"
+PEDRINÓPOLIS,-19.23,-47.46,"R$ 1.459,04"
+PERDIZES,-19.34,-47.29,"R$ 7.782,25"
+PRATA,-19.31,-48.92,"R$ 74.996,56"
+PRATINHA,-19.76,-46.38,"R$ 402,48"
+PRESIDENTE OLEGÁRIO,-18.41,-46.42,"R$ 964,20"
+RIO PARANAÍBA,-19.19,-46.24,"R$ 8.098,65"
+ROMARIA,-18.88,-47.58,"R$ 1.554,52"
+SACRAMENTO,-19.86,-47.44,"R$ 1.608,39"
+SANTA JULIANA,-19.31,-47.53,"R$ 5.073,66"
+SANTA VITÓRIA,-18.84,-50.12,"R$ 20.733,87"
+SANTANA DO ARAGUAIA,-9.33,-50.34,"R$ 501,07"
+SÃO FRANCISCO DE SALES,-19.87,-49.77,"R$ 357,00"
+SÃO GOTARDO,-19.31,-46.05,"R$ 12.193,20"
+SÃO ROQUE DE MINAS,-20.25,-46.37,"R$ 374,22"
+SÃO SIMÃO,-18.99,-50.55,"R$ 240,00"
+SERRA DO SALITRE,-19.11,-46.69,"R$ 6.745,88"
+TAPIRA,-19.93,-46.82,"R$ 3.814,28"
+TIROS,-19.00,-45.96,"R$ 1.250,74"
+TUPACIGUARA,-18.60,-48.69,"R$ 78.357,99"
+UBERABA,-19.71,-47.98,"R$ 116.783,13"
+UBERLÂNDIA,-18.92,-48.28,"R$ 57.693,35"
+UNAÍ,-16.36,-46.90,"R$ 3.332,00"
+UNIÃO DE MINAS,-19.53,-50.33,"R$ 1.606,00"
+VARJÃO DE MINAS,-18.38,-46.03,"R$ 1.143,45"
+VAZANTE,-17.99,-46.90,"R$ 12.773,67"
+VERÍSSIMO,-19.67,-48.30,"R$ 5.208,30"
+
+"""
+
+# Lê os dados
+data_io = StringIO(data_csv)
+df = pd.read_csv(data_io, quotechar='"')
+
+# Cria o mapa centralizado no Brasil
+m = folium.Map(location=[-15.788497, -47.879873], zoom_start=5)
+
+# Converte DataFrame em GeoJSON-like dict
+features = []
+for _, row in df.iterrows():
+    feature = {
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": [row["Longitude"], row["Latitude"]],
+        },
+        "properties": {
+            "Nome": row["Nome"],
+            "Valor": row["Valor"],
+        },
+    }
+    features.append(feature)
+
+geojson = {"type": "FeatureCollection", "features": features}
+
+# Adiciona pontos ao mapa
+geo_layer = folium.GeoJson(
+    geojson,
+    name="Cidades",
+    popup=folium.GeoJsonPopup(fields=["Nome", "Valor"]),
+    tooltip=folium.GeoJsonTooltip(fields=["Nome", "Valor"]),
+).add_to(m)
+
+# Barra de pesquisa (agora funciona)
+Search(
+    layer=geo_layer,
+    search_label="Nome",
+    placeholder="Pesquisar cidade...",
+    collapsed=False
+).add_to(m)
+
+# Salva o HTML
+m.save("mapa_cidades.html")
+print("Mapa gerado com barra de pesquisa funcional: mapa_cidades.html")
+html>
 <html>
 <head>
     
